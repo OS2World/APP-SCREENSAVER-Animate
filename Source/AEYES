@@ -1,0 +1,10 @@
+# Makefile for the EYES animated desktop extension
+
+aeyes.obj : aeyes aeyes.c
+    cl -ML -c -Grs -Ox -W3 aeyes.c
+
+eyes.ani : aeyes aeyes.obj aeyes.def aeyes.rc aeyes.bmp
+    link /align:16 aeyes,aeyes.dll,nul,os2,aeyes
+    if exist eyes.ani del eyes.ani
+    ren aeyes.dll eyes.ani
+    rc aeyes eyes.ani

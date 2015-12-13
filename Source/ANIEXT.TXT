@@ -1,0 +1,220 @@
+Instructions for writing an Animated Desktop Extension for ANIMATE or DESKPIC
+
+
+Good for you! You've decided to write an Animated Desktop Extension. What do
+you need to know to write an extension? Well, a pretty good working knowledge
+of Presentation Manager wouldn't hurt. These instructions will attempt to
+tell you how to write an extension, but they won't tell you how to program
+in PM. To help, two example extensions are provided and are a good place to
+start. When I write a new extension, I usually use 'BOXES' as a framework
+and go from there.
+
+An Animated Desktop Extension is a Dynamic Link Library that contains seven
+functions and has the file extension of '.ANI' instead of '.DLL'. The seven
+functions must be exported with the following ordinals:
+
+   animatename    @1
+   animateinit    @2
+   animatechar    @3
+   animatedblclk  @4
+   animatepaint   @5
+   animateclose   @6
+   animatethread  @7
+
+
+The seven functions are specified by the following function prototypes:
+
+   char far pascal _loadds animatename(void);
+   BOOL far pascal _loadds animateinit(INITBLOCK far *);
+   void far pascal _loadds animatechar(char);
+   void far pascal _loadds animatedblclk(MPARAM);
+   void far pascal _loadds animatepaint(HPS, RECTL far *);
+   void far pascal _loadds animateclose(void);
+   void far pascal _loadds animatethread(void);
+
+
+And the structure INITBLOCK is defined as follows:
+
+   typedef struct {
+      HAB animatehab;
+      HPS shadowhps;
+      HWND screenhwnd;
+      RECTL screenrectl;
+      ULONG hpssemaphore;
+      ULONG volatile closesemaphore;
+      HMODULE thismodule;
+      BOOL (far pascal *screenvisible)(void);
+   } INITBLOCK;
+
+
+Generally, extensions can be divided into two categories: those that update
+the desktop window themselves, and those that let ANIMATE do it. If you're
+going to let ANIMATE do it, then everything you draw into the desktop
+window must also be drawn into the 'shadow Presentation Space'. That way,
+when ANIMATE has to perform an update, it just bitblts from the shadow PS.
+The disadvantages of using the shadow PS are that it uses up a fair chunk
+of memory (150K for a VGA) and since you have to draw everything twice, your
+extension runs half as fast as it could otherwise. The advantage is that you
+don't have to write any update code. The examples are one of each kind -
+HAPPY does its own updates, BOXES uses the shadow PS.
+
+
+The basic execution flow of an extension is straightforward. 'animatename' is
+called by ANIMATE first to determine the one character ID of the extension.
+If the extension is chosen by ANIMATE, it calls 'animateinit' to provide the
+extension with a pointer to the INITBLOCK structure, and to allow the
+extension to do any initialization. Then, 'animatethread' is started as a
+separate low priority thread, and there the extension draws its graphics
+until ANIMATE notifies it to stop. While 'animatethread' is running, ANIMATE
+may call 'animatechar' to give it characters the user has typed,
+'animatedblclk' if the user double clicks on the desktop, and optionally
+'animatepaint' to update a section of the desktop window. When ANIMATE is
+closing, it notifies 'animatethread' that it should stop, waits for it to do
+so, and then calls 'animateclose' so that the extension can clean up and
+release any resources that it was using.
+
+
+The INITBLOCK structure is how ANIMATE provides the extension with
+information about its environment. The fields have the following meaning:
+
+'animatehab' is the handle of the ANIMATE program's anchor block. This may
+   be needed by some OS/2 functions.
+'shadowhps' is a handle to a memory presentation space the size of the
+   screen. This is optionally used when the desktop window is updated. 
+'screenhwnd' is the handle of the desktop window.
+'screenrectl' is the coordinates of the desktop window.
+'hpssemaphore' is a memory semaphore that is used to serialize access to
+   the desktop window.
+'closesemaphore' is a memory semaphore that is used by 'animatethread' to
+   determine when to stop.
+'thismodule' is the module handle of the Animated Desktop Extension. This
+   will be needed to access any local resources.
+'screenvisible' is a pointer to a function that will return TRUE if the
+   Presentation Manager screen is visible.
+
+
+animatename
+
+This function is called by ANIMATE to get the one character ID of the
+extension. It should return an upper case character that the user will use
+to specify the extension. This is usually the first character of the
+extension's name. (Note that DESKPIC ignores the character.) This function
+should not allocate any resources because ANIMATE may call it and then choose
+not to execute the extension.
+
+animateinit
+
+This function is called by ANIMATE to provide the extension with a pointer
+to the INITBLOCK structure, and to find out if the shadow PS will be used.
+The function should save the pointer to the INITBLOCK structure in global
+memory so that it can be accessed by the other functions, and it should
+allocate resources and perform any other initialization that the extension
+needs. The function must return TRUE if the extension will use the shadow PS,
+and FALSE if the extension will perform its own updates. Note that the
+'shadowhps' field in the INITBLOCK structure is not valid at this point
+(since ANIMATE doesn't know if it's needed or not), so the shadow PS cannot
+be initialized at this time.
+
+animatethread
+
+This procedure will be started as a separate thread by ANIMATE. It performs
+all the drawing to the desktop window and, if used, the shadow PS. Note that
+stack space is limited, so any sizeable memory needed should be allocated
+at run time using 'DosAllocSeg'. The order of operations in the procedure
+should be as follows:
+   1) Get an Anchor Block. Threads shouldn't make calls to the PM API
+      without one.
+   2) Initialize the shadow PS, if used.
+   3) Post a 'WM_USER' message to desktop window ('screenhwnd' in the
+      INITBLOCK structure). The ANIMATE program won't paint on the desktop
+      window until it gets this message. This gives the extension time to
+      initialize the shadow PS if it's being used, or to set up anything
+      that's needed by the 'animatepaint' procedure.
+   4) Draw the graphics to the desktop window until ANIMATE signals the
+      extension to stop by setting 'closesemaphore' in the INITBLOCK
+      structure to a non-zero value. If using the shadow PS, remember to draw
+      exactly the same graphics to it that get drawn to the desktop window.
+      This is where the extension will be spending most of its time, drawing
+      while 'closesemaphore' is zero, until ANIMATE is closed by the user. 
+   5) Release any resources that were allocated in 'animatethread', including
+      terminating the Anchor Block.
+   6) Enter a critical section by calling 'DosEnterCritSec'. This is needed
+      so ANIMATE won't de-allocate the thread's stack too soon.
+   7) Clear 'closesemaphore' using 'DosSemClear' and exit the procedure.
+      When 'closesemaphore' is cleared, ANIMATE will know that the thread
+      has terminated.
+There are two important rules that must be followed when drawing into the
+desktop window. First, before drawing, call the function pointed to by
+'screenvisible' in the INITBLOCK structure. If the function returns FALSE,
+don't draw, because the PM screen is not visible (the user has probably
+switched to another screen group). When the user is not in the PM screen
+group, 'screenvisible' blocks to keep 'animatethread' from wasting CPU time.
+Second, when the extension gets a Presentation Space for the desktop window,
+or when it draws into the shadow PS, 'hpssemaphore' in the INITBLOCK
+structure must be requested with 'DosSemRequest' beforehand, and must be
+cleared with 'DosSemClear' after the Presentation Space has been released.
+THIS IS VERY IMPORTANT! ANIMATE often needs to draw into the desktop window,
+and must block any drawing 'animatethread' may do. If 'animatethread' draws
+at the same time as ANIMATE, sooner or later your computer will crash. Also,
+don't request 'hpssemaphore' and then keep it for any lengthy period of time,
+since ANIMATE (and thus the whole PM screen group) will be blocked until you
+clear it. The extension should request 'hpssemaphore', get a Presentation
+Space for the desktop window using 'screenhwnd' and 'WinGetPS', draw into the
+Presentation Space, draw into the shadow PS if used, release the desktop
+window Presentation Space, and then clear 'hpssemaphore'.
+
+animatepaint
+
+This procedure is only called when the shadow PS is not used. It should
+update the portion of the desktop window specified by the RECTL pointer,
+using the Presentation Space specified by the HPS. This is similar to
+'WinBeginPaint' except that the procedure must not release the Presentation
+Space since ANIMATE will take care of that. Also, don't request (or clear)
+'hpssemaphore' because ANIMATE already does that before calling
+'animatepaint', a feature that can be used to serialize access to global
+variables or other resources that 'animatethread' and 'animatepaint' must
+share.
+
+animatechar
+
+When ANIMATE gets a character from the user, and doesn't process it itself,
+it passes the character to this procedure so that the extension can process
+it (or ignore it). Like 'animatepaint', ANIMATE requests 'hpssemaphore'
+before calling 'animatechar' (and clears it after returning) so that access
+to global variables or other resources 'animatethread' and 'animatechar' must
+share can be serialized.
+
+animatedblclk
+
+ANIMATE calls this procedure when the user has double-clicked on the desktop
+window (DESKPIC calls this procedure when the "Info" button is pressed).
+Usually the procedure brings up a message box with credits and instructions,
+but a full fledged dialog box can be invoked if desired. The MPARAM is 'mp1'
+from the 'WM_BUTTON1DBLCLK' message that ANIMATE received, which contains the
+position of the pointer (DESKPIC always sends 0). When invoking a message box
+or dialog box, 'screenhwnd' should NOT be used as the parent or owner, use
+'HWND_DESKTOP' instead. Since the animated desktop window is behind all other
+windows, any child of the animated desktop window would also be behind all
+other windows, something almost certainly undesirable for a message box. Note
+also that unlike 'animatepaint' and 'animatechar', ANIMATE does not request
+'hpssemaphore' before calling 'animatedblclk'. This is so the animated
+desktop will continue to run while the message box is up.
+
+animateclose
+
+This is the last procedure called by ANIMATE, just before ANIMATE
+terminates. The procedure should release any resources that were allocated
+during 'animateinit'. Like 'animateinit', the 'shadowhps' field in the
+INITBLOCK structure is not valid at this point.
+
+
+
+That completes the explanation. Where the instructions are a little sketchy,
+use the example source code to see at least one way of doing it. Good luck,
+and may the bits be with you.
+
+
+John Ridges
+
+Gilmore /108 or Compuserve 72000,2057 (checked weekly)
+June 9, 1990

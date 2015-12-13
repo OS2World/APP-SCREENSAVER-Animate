@@ -1,0 +1,16 @@
+Contents of the ANIMATE package:
+
+
+ANIMATE.TXT  Documentation for the ANIMATE program.
+
+ANIMATE.EXE  The ANIMATE program executable.
+
+ANIMATE.DLL  The ANIMATE program dynamic link library.
+
+AQUARIUM.ANI Aquarium Animated Desktop extension.
+
+EYES.ANI     Bouncing "eyecon" Animated Desktop extension.
+
+BOXES.ANI     Boxes Animated Desktop extension.
+
+HAPPY.ANI     Happy Animated Desktop extension.

@@ -1,0 +1,9 @@
+LIBRARY ANIMATE
+
+PROTMODE
+
+EXPORTS
+
+    InstallAniHook      @1
+    ReleaseAniHook      @2
+

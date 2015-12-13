@@ -1,0 +1,5 @@
+/* Resource file for the AQUA animated desktop extension */
+
+BITMAP 1 anfish1.bmp
+BITMAP 2 anfish2.bmp
+BITMAP 3 anfish3.bmp

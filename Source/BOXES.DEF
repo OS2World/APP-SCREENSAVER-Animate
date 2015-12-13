@@ -1,0 +1,17 @@
+LIBRARY BOXES INITINSTANCE
+
+DESCRIPTION 'BOXES.ANI - An example animated desktop extension by John Ridges'
+
+PROTMODE
+
+DATA NONSHARED
+
+EXPORTS
+
+   animatename     @1
+   animateinit     @2
+   animatechar     @3
+   animatedblclk   @4
+   animatepaint    @5
+   animateclose    @6
+   animatethread   @7

@@ -1,0 +1,80 @@
+--------------------------------------------------------------------
+Animate - An animated desktop program for OS/2 Presentation Manager
+Version: 1991-Jun-07 
+Author: John Ridges
+License: Released as Public Domain by John Ridges on 2015/11/21
+--------------------------------------------------------------------
+
+Invocation:  START ANIMATE [desktop]
+
+To install, place ANIMATE.EXE in your path, ANIMATE.DLL in you libpath. Any
+Animated Desktop Extensions should also be placed in the same directory
+as ANIMATE.EXE.
+
+
+Animate is a program for those people who like to have nifty graphics dancing
+around their computer screen, and don't like having to stop them in order to
+actually USE their computer. With Animate, the action continues on the
+desktop, behind all your windows, even as you work, giving artistic enjoyment
+and resulting in an enriched and fulfilling computing experience. (Sorry,
+I got carried away.) Animate can also act as a "screen saver" - after a
+programmable period of inactivity, it will bring the graphic forward to fill
+the screen. Animate is also extensible, so there should be a steady
+flow of new animated desktops if anyone bothers to write any. In the off
+chance that someone does write some extensions, you can recognize them by the
+file extension (no pun intended) '.ANI'. Animated desktop programs have been
+tried with varying degrees of success on other windowing systems, but are
+usually too intrusive to have around permanently. But using the miracle of
+multi-tasking and low priority threads, this one is pretty darn unobtrusive,
+and shouldn't interfere with normal use of your computer (besides possibly
+driving you crazy with all the graphics going on all the time). 
+
+When started, Animate randomly chooses a desktop from the list specified by
+'desktop', which is a string of characters, one desktop per character. If
+'desktop' is null, Animate will choose from all the desktops available to it.
+There are four desktops built into Animate, they are:
+    'Z' for zoom, a bouncing geometric figure that leaves a trail behind it.
+    'F' for fireworks, a fireworks display.
+    'S' for space, a simulation of moving through space.
+    'W' for wallpaper, a changing wallpaper display.
+Animated Desktop Extensions are specified using other letters, usually the
+first letter of the extension name. Example: You want Animate to show either
+'space' or 'zoom', but you want 'space' to be twice as likely. You would type
+START ANIMATE SSZ
+
+When the desktop has the focus, 'F' will bring it forward and another 'F'
+or a mouse movement will return it to the background. 'P' will pause the
+animation and another 'P' will allow it to continue. 'S' will bring up the
+screen saver dialog, and you can terminate Animate with 'F3'. Individual
+desktops may have other controls, double click on the desktop to find out.
+
+For those of you that care, I hereby officially release the program into
+the public domain. If you're interested in writing Animated Desktop
+Extensions, there is a package with instructions and two sample extensions
+that I'll be posting. (If you can't find it, contact me and I'll get it to
+you.) I'm really looking forward to seeing some whiz-bang extensions, so
+somebody please write some. 
+
+Animate's been pretty thoroughly tested and I'm willing to bet what's left
+of my professional reputation that it's bug free. Of course, legally, I
+make no guarantees about anything it might do to your programs, data,
+hardware, or sanity. Hey, you get what you pay for.
+
+Comments? Questions? Suggestions? Hate mail? You can contact me at Compuserve
+72000,2057 (checked weekly).
+
+
+4/28/90 - Bug that left Presentation Manager in an unpleasant state when
+Animate was stopped with the Task Manager fixed. I guess that just about
+wraps it up for my professional reputation. How embarrassing.
+
+4/29/90 - Added screen saver option.
+
+5/10/90 - Whoa, this is a bad one! Bug that was introduced when I switched
+to the OS/2 1.2 toolkit. Microsoft removed the "_export" declarator from the
+definition of "CALLBACK" in the C header files, so none of my window
+procedures were exported! This caused random, unpredictable weirdness with
+Presentation Manager. Oh well.
+
+6/07/91 - Fixed a problem where the screen saver woke up unexpectedly when
+some applications were being used.

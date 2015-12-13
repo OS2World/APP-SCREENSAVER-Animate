@@ -1,0 +1,10 @@
+# Makefile for the HAPPY animated desktop extension
+
+happy.obj : happy happy.c
+    cl /c /ALw /G2cs /Ox /W3 /FPa /D_MT happy.c
+
+happy.ani : happy happy.obj happy.def happy.rc happy.ptr
+    link /align:16 /NOD happy,happy.dll,nul,os2 llibcdll,happy
+    if exist happy.ani del happy.ani
+    ren happy.dll happy.ani
+    rc happy happy.ani

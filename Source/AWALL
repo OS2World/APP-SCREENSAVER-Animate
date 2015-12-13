@@ -1,0 +1,9 @@
+# Makefile for the WALL animated desktop extension
+
+awall.obj : awall awall.c
+    cl -ML -c -Grs -Ox -W3 awall.c
+
+wall.ani : awall awall.obj awall.def
+    link /align:16 awall,awall.dll,nul,os2,awall
+    if exist wall.ani del wall.ani
+    ren awall.dll wall.ani

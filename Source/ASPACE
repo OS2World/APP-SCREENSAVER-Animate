@@ -1,0 +1,12 @@
+# Makefile for the SPACE animated desktop extension
+
+fixmul.obj : aspace fixmul.asm
+    masm -W2 fixmul;
+    
+aspace.obj : aspace aspace.c
+    cl -ML -c -Grs -Ox -W3 aspace.c
+
+space.ani : aspace aspace.obj fixmul.obj aspace.def
+    link /align:16 aspace+fixmul,aspace.dll,nul,os2,aspace
+    if exist space.ani del space.ani
+    ren aspace.dll space.ani

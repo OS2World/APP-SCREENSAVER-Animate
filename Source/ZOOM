@@ -1,0 +1,9 @@
+# Makefile for the ZOOM animated desktop extension
+
+zoom.obj : zoom zoom.c
+    cl -ML -c -Grs -Ox -W3 zoom.c
+
+zoom.ani : zoom zoom.obj zoom.def
+    link /align:16 zoom,zoom.dll,nul,os2,zoom
+    if exist zoom.ani del zoom.ani
+    ren zoom.dll zoom.ani

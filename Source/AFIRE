@@ -1,0 +1,12 @@
+# Makefile for the FIRE animated desktop extension
+
+fixasm.obj : afire fixasm.asm
+    masm -W2 fixasm;
+    
+afire.obj : afire afire.c
+    cl -B2 C2L -ML -c -Grs -Ox -W3 afire.c
+
+fire.ani : afire afire.obj fixasm.obj afire.def
+    link /align:16 afire+fixasm,afire.dll,nul,os2,afire
+    if exist fire.ani del fire.ani
+    ren afire.dll fire.ani

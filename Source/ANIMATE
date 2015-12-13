@@ -1,0 +1,37 @@
+# Makefile for the animate program
+
+initdll.obj : animate initdll.asm
+    masm initdll;
+
+anihook.obj : animate anihook.c
+    cl -c -ASw -G2rs -Ox -W3 anihook.c
+
+animate.dll : animate initdll.obj anihook.obj anihook.def
+    link /align:16 anihook+initdll,animate.dll,nul,os2,anihook
+
+fixasm.obj : animate fixasm.asm
+    masm fixasm;
+    
+anzoom.obj : anzoom.c animate
+    cl -c -AMw -G2rs -Ox -W3 anzoom.c
+
+anfire.obj : anfire.c animate
+    cl -B2 C2L -c -AMw -G2rs -Ox -W3 anfire.c
+
+anspace.obj : anspace.c animate
+    cl -c -AMw -G2rs -Ox -W3 anspace.c
+
+anwall.obj : anwall.c animate
+    cl -c -AMw -G2rs -Ox -W3 anwall.c
+
+andia.obj : andia.c animate
+    cl -c -AM -G2rs -Osler -W3 andia.c
+
+animate.obj : animate.c animate
+    cl -c -AMw -G2rs -Osler -W3 animate.c
+
+animate.exe : animate.obj anzoom.obj anfire.obj anspace.obj anwall.obj fixasm.obj animate.def animate.rc animate
+     link /align:16 /packc:1024 /NOE animate+andia+anzoom+fixasm+anfire+anspace+anwall,animat,nul,os2,animate
+     if exist animate.exe del animate.exe
+     ren animat.exe animate.exe
+     rc animate

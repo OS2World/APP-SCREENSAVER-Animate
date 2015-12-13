@@ -1,0 +1,9 @@
+# Makefile for the BOXES animated desktop extension
+
+boxes.obj : boxes boxes.c
+    cl /c /ALw /G2cs /Ox /W3 /FPa /D_MT boxes.c
+
+boxes.ani : boxes boxes.obj boxes.def
+    link /align:16 /NOD boxes,boxes.dll,nul,os2 llibcdll,boxes
+    if exist boxes.ani del boxes.ani
+    ren boxes.dll boxes.ani

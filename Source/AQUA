@@ -1,0 +1,13 @@
+# Makefile for the AQUARIUM animated desktop extension
+
+aqua.obj : aqua aqua.c
+    cl -B2 C2L -ML -c -Grs -Ox -W3 aqua.c
+
+aqua.res : aqua aqua.rc anfish1.bmp anfish2.bmp anfish3.bmp
+    rc -r aqua
+
+aquarium.ani : aqua aqua.obj aqua.def aqua.res
+    link /align:16 aqua,aqua.dll,nul,os2,aqua
+    if exist aquarium.ani del aquarium.ani
+    ren aqua.dll aquarium.ani
+    rc aqua.res aquarium.ani

@@ -1,0 +1,7 @@
+NAME ANIMATE WINDOWAPI
+
+DESCRIPTION 'ANIMATE.EXE - An animated desktop program by John Ridges'
+
+STUB 'os2stub.exe'
+
+STACKSIZE 8192
